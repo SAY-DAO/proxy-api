@@ -20,17 +20,14 @@ services:
   web:
     build: .
     labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # This is correct for HTTP requests
-    - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # Ensure it listens on the 'web' entry point
-    - "traefik.http.routers.flask-proxy-http.priority=1"
-    - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"
-    - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-    - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
-    - "traefik.http.routers.flask-proxy.rule=Host(`proxy.saydao.org`)"  # Make sure this matches the domain in the certificate
-    - "traefik.http.routers.flask-proxy.entrypoints=websecure"  # This is for HTTPS, correct
-    - "traefik.http.routers.flask-proxy.tls=true"
-    - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"  # Ensure this matches the ACME resolver
+      - "traefik.enable=true"
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # HTTP challenge router
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # ACME HTTP-01 challenge on port 80
+      - "traefik.http.routers.flask-proxy-http.priority=1"
+      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
+      - "traefik.http.routers.flask-proxy.entrypoints=websecure"  # HTTPS routing
+      - "traefik.http.routers.flask-proxy.tls=true"  # Use HTTPS for the main app
+      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}

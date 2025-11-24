@@ -21,21 +21,22 @@ services:
       - webnet
     environment:
       - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}   # Make sure this is set in your environment
-
   web:
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=webnet"   # Ensure this network is correctly set
-      - "traefik.http.routers.flask-proxy-http.entrypoints=web"   # ACME challenge through HTTP
-      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"   # Ensure DOMAIN is set
+      - "traefik.docker.network=webnet"
+      - "traefik.constraint-label=traefik-public"
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy-http.service=flask-proxy"
-      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"   # Redirect HTTP to HTTPS
-      - "traefik.http.routers.flask-proxy.entrypoints=websecure"   # HTTPS entrypoint
+      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"  # Apply redirect middleware
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"  # Define redirect scheme to HTTPS
+      - "traefik.http.routers.flask-proxy.entrypoints=https"
       - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy.service=flask-proxy"
       - "traefik.http.routers.flask-proxy.tls=true"
-      - "traefik.http.routers.flask-proxy.tls.certresolver=le"  # Use ACME resolver
+      - "traefik.http.routers.flask-proxy.tls.certresolver=le"
       - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

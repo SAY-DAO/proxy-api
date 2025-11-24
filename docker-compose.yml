@@ -27,7 +27,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=webnet"
       - "traefik.constraint-label=traefik-public"
-      - "traefik.http.routers.flask-proxy-http.entrypoints=web"
+      - "traefik.http.routers.flask-proxy-http.entrypoints=http"
       - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy-http.service=flask-proxy"
       - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"  # Apply redirect middleware

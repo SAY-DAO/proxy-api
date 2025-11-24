@@ -11,7 +11,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/acme.json:/letsencrypt/acme.json
-      - ./traefik/acme.json:/letsencrypt/acme.json
     restart: unless-stopped
     networks:
       - webnet
@@ -22,18 +21,13 @@ services:
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # Ensure this is correct
-      - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # Points to the 'web' entry point for HTTP challenge
-      - "traefik.http.routers.flask-proxy-http.priority=1"
-      - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
-      # HTTP to HTTPS redirection
       - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-proxy-http.entrypoints=web"
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # Keep this pointing to the 'web' entry point for ACME HTTP challenge
       - "traefik.http.routers.flask-proxy-http.priority=1"
-      - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
+      # Ensure this line does not interfere with HTTP challenge
+      # - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"  # REMOVE THIS
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"  # REMOVE THIS
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}

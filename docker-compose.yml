@@ -2,35 +2,40 @@ services:
   traefik:
     image: traefik:latest
     command:
-      - --configFile=/etc/traefik/traefik.yml
+      - --api.insecure=true    # Enables Traefik Dashboard (secure in production)
+      - --entrypoints.web.address=:80    # HTTP entrypoint (for ACME challenge)
+      - --entrypoints.websecure.address=:443  # HTTPS entrypoint
+      - --providers.docker=true   # Enable Docker provider for Traefik
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_EMAIL}   # ACME email
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json   # Where certificates are stored
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web   # HTTP challenge
     ports:
-      - "80:80"     # HTTP (used for ACME http-01 challenge)
-      - "443:443"   # HTTPS (served by Traefik with Let's Encrypt certs)
-      - "8080:8080" # Traefik dashboard (optional; secure in production)
+      - "80:80"   # HTTP (used for ACME http-01 challenge)
+      - "443:443"  # HTTPS (served by Traefik with Let's Encrypt certs)
+      - "8080:8080"  # Traefik dashboard (optional; secure in production)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/letsencrypt/acme.json
+      - ./traefik/acme.json:/letsencrypt/acme.json  # ACME storage file
     restart: unless-stopped
     networks:
       - webnet
     environment:
-      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}
+      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}   # Make sure this is set in your environment
 
   web:
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik-public"
-      - "traefik.constraint-label=traefik-public"
-      - "traefik.http.routers.flask-proxy-http.entrypoints=http"
-      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # Ensure DOMAIN is set
+      - "traefik.docker.network=webnet"   # Ensure this network is correctly set
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"   # ACME challenge through HTTP
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"   # Ensure DOMAIN is set
       - "traefik.http.routers.flask-proxy-http.service=flask-proxy"
-      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"
-      - "traefik.http.routers.flask-proxy.entrypoints=https"
+      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"   # Redirect HTTP to HTTPS
+      - "traefik.http.routers.flask-proxy.entrypoints=websecure"   # HTTPS entrypoint
       - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy.service=flask-proxy"
       - "traefik.http.routers.flask-proxy.tls=true"
-      - "traefik.http.routers.flask-proxy.tls.certresolver=le"  # Ensure this matches the ACME resolver in Traefik's config
+      - "traefik.http.routers.flask-proxy.tls.certresolver=le"  # Use ACME resolver
       - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

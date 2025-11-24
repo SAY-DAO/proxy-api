@@ -1,13 +1,26 @@
+# Traefik static configuration
+api:
+  dashboard: true
+  insecure: false
+
 entryPoints:
   web:
-    address: ":80"   # HTTP entry point (this will not be used anymore)
+    address: ":80"
   websecure:
-    address: ":443"  # HTTPS entry point (this will be used for all traffic)
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
 
 certificatesResolvers:
   myresolver:
     acme:
-      email: "you@saydao.org"
+      email: you@saydao.org
       storage: /letsencrypt/acme.json
+      # Use httpChallenge (port 80 must be reachable by Let's Encrypt)
       httpChallenge:
-        entryPoint: web  # This will be used for the HTTP challenge (on port 80), required for certificate issuance
+        entryPoint: web
+log:
+  level: DEBUG

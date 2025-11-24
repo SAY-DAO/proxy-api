@@ -59,4 +59,4 @@ services:
 
 networks:
   proxy-api_webnet:
-    external: true  # Use an existing external network (it was previously created)
+    driver: bridge  # Allow Docker Compose to create this network automatically

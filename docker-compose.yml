@@ -29,13 +29,13 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy-api_webnet"  # Use the correct network
       - "traefik.http.routers.my-service-http.entrypoints=http"  # HTTP entrypoint
-      - "traefik.http.routers.my-service-http.rule=Host(${DOMAIN})"  # Ensure DOMAIN is correctly set
+      - "traefik.http.routers.my-service-http.rule=Host(`${DOMAIN}`)" # Ensure DOMAIN is correctly set
       - "traefik.http.routers.my-service-http.service=my-service"
       - "traefik.http.routers.my-service-http.middlewares=https-redirect"  # Apply redirect to HTTPS
 
       # HTTPS router for secure traffic
       - "traefik.http.routers.my-service-https.entrypoints=https"
-      - "traefik.http.routers.my-service-https.rule=Host(${DOMAIN})"
+      - "traefik.http.routers.my-service-https.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.my-service-https.service=my-service"
       - "traefik.http.routers.my-service-https.tls=true"  # Enable TLS
       - "traefik.http.routers.my-service-https.tls.certresolver=myresolver"  # Use Let's Encrypt resolver

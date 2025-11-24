@@ -28,6 +28,19 @@ services:
       - "traefik.http.routers.flask-proxy.entrypoints=websecure"  # HTTPS routing
       - "traefik.http.routers.flask-proxy.tls=true"  # Use HTTPS for the main app
       - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"
+
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.flask-proxy-http.entrypoints=web
+      - traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.flask-proxy-http.service=flask-proxy
+      - traefik.http.routers.flask-proxy-http.middlewares=https-redirect
+      - traefik.http.routers.flask-proxy.entrypoints=websecure
+      - traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.flask-proxy.service=flask-proxy
+      - traefik.http.routers.flask-proxy.tls=true
+      - traefik.http.routers.flask-proxy.tls.certresolver=myresolver
+      - traefik.http.services.flask-proxy.loadbalancer.server.port=3000
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}

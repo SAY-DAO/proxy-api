@@ -24,9 +24,9 @@ services:
       - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy.entrypoints=websecure"
       - "traefik.http.routers.flask-proxy.tls=true"
-      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"
+      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"  # Use the ACME resolver
       - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
-      # Optional: redirect HTTP -> HTTPS automatically
+      # HTTP to HTTPS redirection
       - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.flask-proxy-http.entrypoints=web"
       - "traefik.http.routers.flask-proxy-http.priority=1"

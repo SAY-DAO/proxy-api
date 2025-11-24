@@ -2,25 +2,26 @@ services:
   traefik:
     image: traefik:latest
     command:
-      - --api.insecure=true    # Enables Traefik Dashboard (secure in production)
-      - --entrypoints.web.address=:80    # HTTP entrypoint (for ACME challenge)
-      - --entrypoints.websecure.address=:443  # HTTPS entrypoint
-      - --providers.docker=true   # Enable Docker provider for Traefik
-      - --certificatesresolvers.le.acme.email=${TRAEFIK_EMAIL}   # ACME email
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json   # Where certificates are stored
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web   # HTTP challenge
+      - --api.insecure=true  # Enable dashboard (disable in production)
+      - --entrypoints.web.address=:80  # HTTP entrypoint for ACME challenge (port 80)
+      - --entrypoints.websecure.address=:443  # HTTPS entrypoint (port 443)
+      - --providers.docker=true  # Enable Docker provider
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_EMAIL}  # ACME email
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json  # ACME storage path
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web  # Use HTTP challenge on port 80
     ports:
-      - "80:80"   # HTTP (used for ACME http-01 challenge)
+      - "80:80"   # HTTP (for ACME http-01 challenge)
       - "443:443"  # HTTPS (served by Traefik with Let's Encrypt certs)
-      - "8080:8080"  # Traefik dashboard (optional; secure in production)
+      - "8080:8080"  # Traefik dashboard (secure in production)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/letsencrypt/acme.json  # ACME storage file
+      - ./traefik/acme.json:/letsencrypt/acme.json
     restart: unless-stopped
     networks:
       - webnet
     environment:
-      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}   # Make sure this is set in your environment
+      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}  # Set your email for Let's Encrypt
+
   web:
     build: .
     labels:

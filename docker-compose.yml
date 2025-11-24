@@ -20,15 +20,7 @@ services:
   web:
     build: .
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # HTTP challenge router
-      - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # ACME HTTP-01 challenge on port 80
-      - "traefik.http.routers.flask-proxy-http.priority=1"
-      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
-      - "traefik.http.routers.flask-proxy.entrypoints=websecure"  # HTTPS routing
-      - "traefik.http.routers.flask-proxy.tls=true"  # Use HTTPS for the main app
-      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"
-
+      - traefik.enable=true
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
       - traefik.http.routers.flask-proxy-http.entrypoints=web
@@ -40,7 +32,7 @@ services:
       - traefik.http.routers.flask-proxy.service=flask-proxy
       - traefik.http.routers.flask-proxy.tls=true
       - traefik.http.routers.flask-proxy.tls.certresolver=myresolver
-      - traefik.http.services.flask-proxy.loadbalancer.server.port=3000
+      - traefik.http.services.flask-proxy.loadbalancer.server.port=5000
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}

@@ -1,0 +1,37 @@
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment directories
+venv/
+env/
+
+# Docker and Traefik files
+**/node_modules/
+**/.env
+**/acme.json
+**/nginx/
+**/traefik/acme.json
+**/traefik/.env
+
+# Logs
+*.log
+*.log.*
+*.out
+
+# Flask's default database files
+*.db
+*.sqlite3
+
+# IDE files (example for VS Code, add others based on your editor)
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Application-specific generated files
+*.egg-info/
+*.dist-info/

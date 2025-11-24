@@ -1,10 +1,50 @@
-version: '3.8'
-
 services:
+  traefik:
+    image: traefik:latest
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"     # HTTP (used for ACME http-01 challenge)
+      - "443:443"   # HTTPS (served by Traefik with Let's Encrypt certs)
+      - "8080:8080" # Traefik dashboard (optional; secure in production)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/acme.json:/letsencrypt/acme.json
+    restart: unless-stopped
+    networks:
+      - webnet
+    environment:
+      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}
+
   web:
     build: .
-    ports:
-      - "5000:5000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-proxy.entrypoints=websecure"
+      - "traefik.http.routers.flask-proxy.tls=true"
+      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"
+      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
+      # Optional: redirect HTTP -> HTTPS automatically
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"
+      - "traefik.http.routers.flask-proxy-http.priority=1"
+      - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
     environment:
-      - PYTHONUNBUFFERED=1
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}
+      - PROXY_FIX_X_PROTO=${PROXY_FIX_X_PROTO:-1}
+      - PROXY_FIX_X_HOST=${PROXY_FIX_X_HOST:-1}
+    expose:
+      - "5000"
+    restart: unless-stopped
+    networks:
+      - webnet
+
+
+networks:
+  webnet:
+    driver: bridge
+

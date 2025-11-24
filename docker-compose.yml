@@ -9,7 +9,6 @@ services:
       - "8080:8080" # Traefik dashboard (optional; secure in production)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/acme.json:/letsencrypt/acme.json
     restart: unless-stopped
     networks:
@@ -23,15 +22,15 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
-      - traefik.http.routers.flask-proxy-http.entrypoints=web
+      - traefik.http.routers.flask-proxy-http.entrypoints=http
       - traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN?Variable not set}`)
       - traefik.http.routers.flask-proxy-http.service=flask-proxy
       - traefik.http.routers.flask-proxy-http.middlewares=https-redirect
-      - traefik.http.routers.flask-proxy.entrypoints=websecure
+      - traefik.http.routers.flask-proxy.entrypoints=https
       - traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN?Variable not set}`)
       - traefik.http.routers.flask-proxy.service=flask-proxy
       - traefik.http.routers.flask-proxy.tls=true
-      - traefik.http.routers.flask-proxy.tls.certresolver=myresolver
+      - traefik.http.routers.flask-proxy.tls.certresolver=le
       - traefik.http.services.flask-proxy.loadbalancer.server.port=5000
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

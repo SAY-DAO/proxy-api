@@ -41,16 +41,7 @@ services:
 
       - "traefik.http.services.my-service.loadbalancer.server.port=5000"  # Flask app running on port 5000
 
-      # ACME challenge router
-      - "traefik.http.routers.acme-challenge.rule=PathPrefix(`/well-known/acme-challenge/`)"
-      - "traefik.http.routers.acme-challenge.entryPoints=http"
-      - "traefik.http.services.acme-challenge.loadbalancer.server.port=80"
-
-      # Define the https-redirect middleware in the labels
-      - "traefik.http.middlewares.https-redirect.redirectScheme.scheme=https"  # Redirect HTTP to HTTPS
-      - "traefik.http.middlewares.https-redirect.redirectScheme.permanent=true"  # Permanent redirection
-
-# ACME Challenge Router (ensure it's handled separately)
+# ACME challenge service should be a separate service
   acme-challenge:
     image: traefik:latest
     command:

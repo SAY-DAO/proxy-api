@@ -22,10 +22,11 @@ services:
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-proxy.entrypoints=wb"
-      - "traefik.http.routers.flask-proxy.tls=true"
-      - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"  # Use the ACME resolver
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # Ensure this is correct
+      - "traefik.http.routers.flask-proxy-http.entrypoints=web"  # Points to the 'web' entry point for HTTP challenge
+      - "traefik.http.routers.flask-proxy-http.priority=1"
+      - "traefik.http.routers.flask-proxy-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
       # HTTP to HTTPS redirection
       - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"

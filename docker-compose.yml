@@ -19,19 +19,19 @@ services:
   web:
     build: .
     labels:
-      - traefik.enable=true  # Enable Traefik for the service
-      - traefik.docker.network=webnet # Specifies which Docker network Traefik should listen on
-      - traefik.constraint-label=webnet  # Only applies to services with this label
-      - traefik.http.routers.flask-proxy-http.entrypoints=http
-      - traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN?Variable not set}`)
-      - traefik.http.routers.flask-proxy-http.service=flask-proxy
-      - traefik.http.routers.flask-proxy-http.middlewares=https-redirect
-      - traefik.http.routers.flask-proxy.entrypoints=https
-      - traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN?Variable not set}`)
-      - traefik.http.routers.flask-proxy.service=flask-proxy
-      - traefik.http.routers.flask-proxy.tls=true
-      - traefik.http.routers.flask-proxy.tls.certresolver=le
-      - traefik.http.services.flask-proxy.loadbalancer.server.port=5000
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.constraint-label=traefik-public"
+      - "traefik.http.routers.flask-proxy-http.entrypoints=http"
+      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"  # Ensure DOMAIN is set
+      - "traefik.http.routers.flask-proxy-http.service=flask-proxy"
+      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"
+      - "traefik.http.routers.flask-proxy.entrypoints=https"
+      - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-proxy.service=flask-proxy"
+      - "traefik.http.routers.flask-proxy.tls=true"
+      - "traefik.http.routers.flask-proxy.tls.certresolver=le"  # Ensure this matches the ACME resolver in Traefik's config
+      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}

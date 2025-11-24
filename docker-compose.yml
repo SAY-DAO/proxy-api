@@ -26,7 +26,6 @@ services:
       - traefik.http.routers.flask-proxy-http.entrypoints=web
       - traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN?Variable not set}`)
       - traefik.http.routers.flask-proxy-http.service=flask-proxy
-      - traefik.http.routers.flask-proxy-http.middlewares=https-redirect
       - traefik.http.routers.flask-proxy.entrypoints=websecure
       - traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN?Variable not set}`)
       - traefik.http.routers.flask-proxy.service=flask-proxy

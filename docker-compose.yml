@@ -1,55 +1,64 @@
+version: '3'
+
 services:
   traefik:
     image: traefik:latest
     command:
-      - --api.insecure=true  # Enable dashboard (disable in production)
-      - --entrypoints.web.address=:80  # HTTP entrypoint for ACME challenge (port 80)
-      - --entrypoints.websecure.address=:443  # HTTPS entrypoint (port 443)
-      - --providers.docker=true  # Enable Docker provider
-      - --certificatesresolvers.le.acme.email=${TRAEFIK_EMAIL}  # ACME email
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json  # ACME storage path
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web  # Use HTTP challenge on port 80
+      - --api.insecure=true    # Enable Traefik Dashboard (use secure in production)
+      - --entrypoints.http.address=:80    # HTTP entrypoint for ACME challenge
+      - --entrypoints.https.address=:443  # HTTPS entrypoint
+      - --providers.docker=true   # Enable Docker provider
+      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}  # ACME email from .env
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json  # ACME certificate storage
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=http   # Use HTTP challenge for ACME
     ports:
-      - "80:80"   # HTTP (for ACME http-01 challenge)
-      - "443:443"  # HTTPS (served by Traefik with Let's Encrypt certs)
-      - "8080:8080"  # Traefik dashboard (secure in production)
+      - "80:80"   # HTTP (for ACME challenge and HTTP traffic)
+      - "443:443"  # HTTPS (secure traffic with Let's Encrypt certs)
+      - "8080:8080"  # Traefik Dashboard (optional, secure in production)
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/letsencrypt/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Enable Traefik to interact with Docker
+      - ./traefik/acme.json:/letsencrypt/acme.json   # Volume to store ACME certificates
     restart: unless-stopped
     networks:
       - webnet
     environment:
-      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}  # Set your email for Let's Encrypt
+      - TRAEFIK_EMAIL=${TRAEFIK_EMAIL}  # Get the email for Let's Encrypt from .env
 
   web:
     build: .
     labels:
+      # Enable Traefik for this service
       - "traefik.enable=true"
+      
+      # Define which network Traefik should use
       - "traefik.docker.network=webnet"
-      - "traefik.constraint-label=traefik-public"
-      - "traefik.http.routers.flask-proxy-http.entrypoints=http"
-      - "traefik.http.routers.flask-proxy-http.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-proxy-http.service=flask-proxy"
-      - "traefik.http.routers.flask-proxy-http.middlewares=https-redirect"  # Apply redirect middleware
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"  # Define redirect scheme to HTTPS
-      - "traefik.http.routers.flask-proxy.entrypoints=https"
-      - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-proxy.service=flask-proxy"
-      - "traefik.http.routers.flask-proxy.tls=true"
-      - "traefik.http.routers.flask-proxy.tls.certresolver=le"
-      - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"
+
+      # HTTP router for ACME challenge and general HTTP traffic (port 80)
+      - "traefik.http.routers.my-service-http.entrypoints=http"  # HTTP entrypoint for ACME challenge
+      - "traefik.http.routers.my-service-http.rule=Host(${DOMAIN})"  # Domain from .env file
+      - "traefik.http.routers.my-service-http.service=my-service"  # Associate with the web service
+      - "traefik.http.routers.my-service-http.middlewares=https-redirect"  # Apply redirect middleware
+
+      # HTTPS router for secure traffic (port 443)
+      - "traefik.http.routers.my-service-https.entrypoints=https"  # HTTPS entrypoint
+      - "traefik.http.routers.my-service-https.rule=Host(${DOMAIN})"  # Same domain for HTTPS traffic
+      - "traefik.http.routers.my-service-https.service=my-service"  # Associate with the web service
+      - "traefik.http.routers.my-service-https.tls=true"  # Enable TLS for HTTPS
+      - "traefik.http.routers.my-service-https.tls.certresolver=myresolver"  # Use ACME resolver (Let's Encrypt)
+
+      # Service configuration (backend Flask app listening on port 5000)
+      - "traefik.http.services.my-service.loadbalancer.server.port=5000"  # The Flask app listens on port 5000
+
+      # Define the redirect middleware from HTTP to HTTPS
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"  # Redirect HTTP to HTTPS
     environment:
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - PROXY_FIX_X_FOR=${PROXY_FIX_X_FOR:-1}
-      - PROXY_FIX_X_PROTO=${PROXY_FIX_X_PROTO:-1}
-      - PROXY_FIX_X_HOST=${PROXY_FIX_X_HOST:-1}
+      - LOG_LEVEL=${LOG_LEVEL}  # Use the log level from .env file
     expose:
-      - "5000"
+      - "5000"  # Expose the Flask app on port 5000
     restart: unless-stopped
     networks:
       - webnet
 
 networks:
   webnet:
-    driver: bridge
+    driver: bridge  # Use the bridge network to allow Traefik and the web service to communicate

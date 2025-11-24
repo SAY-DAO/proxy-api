@@ -42,6 +42,9 @@ services:
 
       - "traefik.http.services.my-service.loadbalancer.server.port=5000"  # Flask app running on port 5000
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"  # Redirect HTTP to HTTPS
+      - traefik.http.routers.acme-challenge.rule=PathPrefix(`/well-known/acme-challenge/`)
+      - traefik.http.routers.acme-challenge.entryPoints=web
+      - traefik.http.services.acme-challenge.loadbalancer.server.port=80
 
 networks:
   proxy-api_webnet:

@@ -11,6 +11,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/acme.json:/letsencrypt/acme.json
+      - ./traefik/acme.json:/letsencrypt/acme.json
     restart: unless-stopped
     networks:
       - webnet
@@ -22,7 +23,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.flask-proxy.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-proxy.entrypoints=websecure"
+      - "traefik.http.routers.flask-proxy.entrypoints=wb"
       - "traefik.http.routers.flask-proxy.tls=true"
       - "traefik.http.routers.flask-proxy.tls.certresolver=myresolver"  # Use the ACME resolver
       - "traefik.http.services.flask-proxy.loadbalancer.server.port=5000"

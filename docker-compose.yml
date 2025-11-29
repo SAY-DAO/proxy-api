@@ -12,6 +12,7 @@ services:
       - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"  # File to store certificates
       - "--certificatesresolvers.leresolver.acme.httpChallenge.entryPoint=web"
       - "--entrypoints.websecure.transport.protocols=http1,http2"  # Enable HTTP/1.1 and HTTP/2
+      - "--entrypoints.websecure.tls=true"  # Enable TLS for websecure entry point
       - "--entrypoints.websecure.tls.minVersion=VersionTLS13"  # Enforce TLSv1.3
       - "--entrypoints.websecure.tls.cipherSuites=TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256"  # Strong cipher suites
       - "--log.level=DEBUG"  # Log level (adjust in prod)

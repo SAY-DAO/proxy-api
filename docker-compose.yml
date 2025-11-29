@@ -10,6 +10,7 @@ services:
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"  # Enable Let's Encrypt TLS challenge for automatic SSL
       - "--certificatesresolvers.leresolver.acme.email=${LETSENCRYPT_EMAIL} " # Your email for Let's Encrypt
       - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json" # File to store certificates
+      - "--certificatesresolvers.leresolver.acme.httpChallenge.entryPoint=web"
       - --log.level=DEBUG  # Log level (adjust in prod)
     ports:
       - "80:80"      # HTTP

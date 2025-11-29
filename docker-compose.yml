@@ -15,7 +15,7 @@ services:
 
   # Traefik service for reverse proxy and SSL management
   traefik:
-    image: traefik:v2.10
+    image: traefik:latest
     command:
       - "--api.insecure=true"  # Enable Traefik dashboard (optional)
       - "--entrypoints.http.address=:80"  # HTTP entrypoint

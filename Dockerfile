@@ -1,17 +1,20 @@
-FROM python:3.11-slim
+# Dockerfile
+FROM python:3.9-slim
 
-ENV PYTHONUNBUFFERED=1
+# Set the working directory in the container
 WORKDIR /app
 
-# Install curl (used by healthchecks) and necessary build deps if any
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the requirements.txt file into the container
+COPY requirements.txt .
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Install the required dependencies
+RUN pip install -r requirements.txt
 
-COPY . .
+# Copy the Flask app code into the container
+COPY app.py .
 
+# Expose the port the app will run on
 EXPOSE 5000
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--timeout", "30"]
+# Run the Flask app when the container starts
+CMD ["python", "app.py"]

@@ -6,34 +6,33 @@ services:
       - FLASK_ENV=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask-api.rule=Host(`nest.example.com`)"
+      - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN}`)"  # Use environment variable for domain
       - "traefik.http.routers.flask-api.entrypoints=http,https"
-      - "traefik.http.routers.flask-api.tls=true"
-      - "traefik.http.routers.flask-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.flask-api.tls=true"  # Enable TLS (HTTPS)
+      - "traefik.http.routers.flask-api.tls.certresolver=le"  # Use the default ACME resolver (Let's Encrypt)
     networks:
       - flask-network  # Flask network should match Traefik's network
       - proxy-api_default  # Add Traefik's network here so both services can communicate
 
   # Traefik service for reverse proxy and SSL management
   traefik:
-    image: traefik:latest
+    image: traefik:v2.10
     command:
       - "--api.insecure=true"
       - "--entrypoints.http.address=:80"
       - "--entrypoints.https.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
-      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
-      - "--log.level=DEBUG"  # Enable debug logs to get more insights
+      - "--certificatesresolvers.le.acme.tlschallenge=true"  # Use default "le" resolver for Let's Encrypt
+      - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL}"  # Email for Let's Encrypt
+      - "--certificatesresolvers.le.acme.storage=/acme.json"  # Store certificates in acme.json
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"  # HTTP
+      - "443:443"  # HTTPS
     volumes:
-      - "./acme.json:/acme.json"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./acme.json:/acme.json"  # Persist certificates
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Access Docker socket for service discovery
     networks:
-      - flask-network  # Use the same network as Flask
-      - proxy-api_default  # Ensure Traefik is also on the shared network
+      - flask-network  # Ensure Traefik is connected to the Flask network
+      - proxy-api_default  # Ensure Traefik and Flask can communicate
     restart: always
 
 networks:

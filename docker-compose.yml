@@ -2,14 +2,20 @@ services:
   # Flask application service
   flask-api:
     build: .
-    environment:
-      - FLASK_ENV=production
+    env_file:
+      - .env
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.flask-api.rule=Host(`${DOMAIN?Variable not set}`)  # Use environment variable for domain
-      - traefik.http.routers.flask-api.entrypoints=http,https
-      - traefik.http.routers.flask-api.tls=true  # Enable TLS (HTTPS)
-      - traefik.http.routers.flask-api.tls.certresolver=le  # Use the default ACME resolver (Let's Encrypt)
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - 'traefik.http.routers.flask-api-http.rule=Host("${DOMAIN}")'
+      - 'traefik.http.routers.flask-api-http.entrypoints=web'
+      - 'traefik.http.routers.flask-api-http.middlewares=redirect-to-https'
+      - 'traefik.http.routers.flask-api-svc.rule=Host("${DOMAIN}")'
+      - 'traefik.http.routers.flask-api-svc.entrypoints=websecure'
+      - 'traefik.http.routers.flask-api-svc.tls=true'
+      - 'traefik.http.routers.flask-api-svc.tls.certresolver=le'
+      - 'traefik.http.services.flask-api-svc.loadbalancer.server.port=${APP_PORT:-2008}'
+      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
     networks:
       - web 
 

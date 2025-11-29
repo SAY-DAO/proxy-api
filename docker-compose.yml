@@ -3,19 +3,15 @@ services:
   traefik:
     image: traefik:latest
     command:
-      - "--api.insecure=true"  # Expose the Traefik dashboard on /dashboard (only for development)
-      - "--providers.docker=true"  # Enable Docker provider
-      - "--entrypoints.web.address=:80"  # Set entry point for HTTP (port 80)
-      - "--entrypoints.websecure.address=:443"  # Set entry point for HTTPS (port 443)
+      - "--api.insecure=true"           # Expose the Traefik dashboard on /dashboard (only for development)
+      - "--providers.docker=true"       # Enable Docker provider
+      - "--entrypoints.web.address=:80" # Set entry point for HTTP (port 80)
+      - "--entrypoints.websecure.address=:443" # Set entry point for HTTPS (port 443)
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"  # Enable Let's Encrypt TLS challenge for automatic SSL
-      - "--certificatesresolvers.leresolver.acme.email=${LETSENCRYPT_EMAIL}"  # Your email for Let's Encrypt
-      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"  # File to store certificates
+      - "--certificatesresolvers.leresolver.acme.email=${LETSENCRYPT_EMAIL} " # Your email for Let's Encrypt
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json" # File to store certificates
       - "--certificatesresolvers.leresolver.acme.httpChallenge.entryPoint=web"
-      - "--entrypoints.websecure.transport.protocols=http1,http2"  # Enable HTTP/1.1 and HTTP/2
-      - "--entrypoints.websecure.tls=true"  # Enable TLS for websecure entry point
-      - "--entrypoints.websecure.tls.minVersion=VersionTLS13"  # Enforce TLSv1.3
-      - "--entrypoints.websecure.tls.cipherSuites=TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256"  # Strong cipher suites
-      - "--log.level=DEBUG"  # Log level (adjust in prod)
+      - --log.level=DEBUG  # Log level (adjust in prod)
     ports:
       - "80:80"      # HTTP
       - "443:443"    # HTTPS

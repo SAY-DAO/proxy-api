@@ -7,7 +7,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - "traefik.http.routers.flask-api-http.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-api-http.rule=Host('proxy.saydao.org')"
       - "traefik.http.routers.flask-api-http.entrypoints=web"
       - "traefik.http.routers.flask-api-http.middlewares=redirect-to-https"
       - "traefik.http.routers.flask-api-svc.rule=Host(`${DOMAIN}`)"

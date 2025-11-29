@@ -27,7 +27,7 @@ services:
       - "80:80"  # HTTP
       - "443:443"  # HTTPS
     volumes:
-      - "./acme.json:/acme.json"  # Traefik will store certificates in this file (ensure the file is writable)
+      - "./acme.json:/acme.json"  # Traefik will store certificates in this file (ensure it's a file, not a directory)
       - "/var/run/docker.sock:/var/run/docker.sock"  # Access Docker socket to discover services
     networks:
       - flask-network

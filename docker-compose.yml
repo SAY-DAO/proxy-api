@@ -2,37 +2,42 @@ services:
   # Flask application service
   flask-api:
     build: .
-    # No need to expose port 5000 here (since Traefik will handle routing)
     environment:
       - FLASK_ENV=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN}`)"  # Use environment variable for domain
-      - "traefik.http.routers.flask-api.entrypoints=http,https" # Use both HTTP and HTTPS entrypoints
-      - "traefik.http.routers.flask-api.tls=true"  # Enable TLS/SSL
-      - "traefik.http.routers.flask-api.tls.certresolver=myresolver"  # Use the Let's Encrypt certresolver
+      - "traefik.http.routers.flask-api.rule=Host(`nest.example.com`)"
+      - "traefik.http.routers.flask-api.entrypoints=http,https"
+      - "traefik.http.routers.flask-api.tls=true"
+      - "traefik.http.routers.flask-api.tls.certresolver=myresolver"
+    networks:
+      - flask-network  # Flask network should match Traefik's network
+      - proxy-api_default  # Add Traefik's network here so both services can communicate
 
   # Traefik service for reverse proxy and SSL management
   traefik:
     image: traefik:latest
     command:
-      - "--api.insecure=true"  # Enable Traefik dashboard (optional)
-      - "--entrypoints.http.address=:80"  # HTTP entrypoint
-      - "--entrypoints.https.address=:443"  # HTTPS entrypoint
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"  # ACME challenge for Let's Encrypt
-      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"  # Use environment variable for email
-      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"  # Store certs in this file
-      - "--log.level=DEBUG"  # Enable DEBUG level logs
+      - "--api.insecure=true"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
+      - "--log.level=DEBUG"  # Enable debug logs to get more insights
     ports:
-      - "80:80"  # HTTP
-      - "443:443"  # HTTPS
+      - "80:80"
+      - "443:443"
     volumes:
-      - "./acme.json:/acme.json"  # Traefik will store certificates in this file
-      - "/var/run/docker.sock:/var/run/docker.sock"  # Access Docker socket to discover services
+      - "./acme.json:/acme.json"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
-      - flask-network
+      - flask-network  # Use the same network as Flask
+      - proxy-api_default  # Ensure Traefik is also on the shared network
     restart: always
 
 networks:
   flask-network:
     driver: bridge
+  proxy-api_default:  # Make sure both services are on this network
+    external: true  # You can use the default bridge network

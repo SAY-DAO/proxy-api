@@ -6,7 +6,7 @@ services:
       - FLASK_ENV=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN}`)"  # Use environment variable for domain
+      - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN?Variable not set}`)"  # Use environment variable for domain
       - "traefik.http.routers.flask-api.entrypoints=http,https"
       - "traefik.http.routers.flask-api.tls=true"  # Enable TLS (HTTPS)
       - "traefik.http.routers.flask-api.tls.certresolver=le"  # Use the default ACME resolver (Let's Encrypt)

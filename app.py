@@ -37,6 +37,10 @@ if 'gunicorn.error' in logging.Logger.manager.loggerDict:
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
+@app.route('/')
+def home():
+    return "Welcome to the Flask app!"
+
 # Helper: generate a request id and store start time
 @app.before_request
 def start_request():

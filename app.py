@@ -109,6 +109,6 @@ def proxy():
     return Response(upstream.content, status=upstream.status_code, headers=headers)
 
 if __name__ == '__main__':
-    # When running locally with `python app.py` this will use Flask's built-in server.
-    # For production we expect Gunicorn (see Dockerfile) which will integrate its logger above.
-    app.run(host='0.0.0.0', port=5000)
+    # In production, use Gunicorn instead of Flask's built-in server
+    # Gunicorn should be configured via Dockerfile (CMD ["gunicorn", "app:app"])
+    app.run(host='0.0.0.0', port=5000, debug=False)  # Debug should be False in production

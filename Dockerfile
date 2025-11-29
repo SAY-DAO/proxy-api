@@ -16,5 +16,5 @@ COPY app.py .
 # Expose the port the app will run on
 EXPOSE 5000
 
-# Run the Flask app when the container starts
-CMD ["python", "app.py"]
+# Use Gunicorn for production
+CMD ["gunicorn", "app:app", "-b", "0.0.0.0:5000"]

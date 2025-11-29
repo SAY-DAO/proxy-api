@@ -25,7 +25,6 @@ services:
     build: .
     environment:
       - LOG_LEVEL=INFO
-      - API_HOST=nest.example.com
     networks:
       - app-network
     volumes:

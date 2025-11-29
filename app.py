@@ -115,4 +115,4 @@ def proxy():
 if __name__ == '__main__':
     # In production, use Gunicorn instead of Flask's built-in server
     # Gunicorn should be configured via Dockerfile (CMD ["gunicorn", "app:app"])
-    app.run(host='0.0.0.0', port=5000, debug=False)  # Debug should be False in production
+    app.run(host='0.0.0.0', port=5000, debug=True)  # Debug should be False in production

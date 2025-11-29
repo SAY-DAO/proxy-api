@@ -1,20 +1,21 @@
-# Dockerfile
+# Use an official Python runtime as a base image
 FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+
+# Install required dependencies
 WORKDIR /app
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the requirements.txt file into the container
-COPY requirements.txt .
+# Copy the application code
+COPY . /app/
 
-# Install the required dependencies
-RUN pip install -r requirements.txt
-
-# Copy the Flask app code into the container
-COPY app.py .
-
-# Expose the port the app will run on
+# Expose the port on which the app will run
 EXPOSE 5000
 
-# Use Gunicorn for production
-CMD ["gunicorn", "app:app", "-b", "0.0.0.0:5000"]
+# Run the Flask app with Gunicorn for production
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]

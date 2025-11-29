@@ -1,50 +1,52 @@
+version: '3.8'
+
 services:
-  # Flask application service
-  app:
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--api.insecure=true"           # Expose the Traefik dashboard on /dashboard (only for development)
+      - "--providers.docker=true"       # Enable Docker provider
+      - "--entrypoints.web.address=:80" # Set entry point for HTTP (port 80)
+      - "--entrypoints.websecure.address=:443" # Set entry point for HTTPS (port 443)
+      - "--certificatesresolvers.leresolver.acme.tlschallenge=true"  # Enable Let's Encrypt TLS challenge for automatic SSL
+      - "--certificatesresolvers.leresolver.acme.email=${LETSENCRYPT_EMAIL} " # Your email for Let's Encrypt
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json" # File to store certificates
+      - --log.level=DEBUG  # Log level (adjust in prod)
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Allow Traefik to access Docker API
+      - "./letsencrypt:/letsencrypt"  # Persist Let's Encrypt certificates
+    networks:
+      - app-network
+
+  # Flask API
+  flask-api:
     build: .
+    environment:
+      - LOG_LEVEL=INFO
+      - API_HOST=nest.example.com
+    networks:
+      - app-network
+    volumes:
+      - .:/app
     env_file:
       - .env
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=web"
-      - "traefik.http.routers.flask-api-http.rule=Host('proxy.saydao.org')"
-      - "traefik.http.routers.flask-api-http.entrypoints=web"
-      - "traefik.http.routers.flask-api-http.middlewares=redirect-to-https"
-      - "traefik.http.routers.flask-api-svc.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.flask-api-svc.entrypoints=websecure"
-      - "traefik.http.routers.flask-api-svc.tls=true"
-      - "traefik.http.routers.flask-api-svc.tls.certresolver=le"
-      - "traefik.http.services.flask-api-svc.loadbalancer.server.port=5000"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-
-    networks:
-      - web 
-
-  # Traefik service for reverse proxy and SSL management
-  traefik:
-    image: traefik:v3.1
-    restart: unless-stopped
-    command:
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --api.dashboard=true
-      - --api.insecure=true      # dev only (remove in prod)
-      - --accesslog=true
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL}  # Email for Let's Encrypt
-      - --certificatesresolvers.le.acme.storage=/acme.json  # Store certificates in acme.json
-      - --log.level=DEBUG  # Enable DEBUG level logs
-    ports:
-      - "80:80"  # HTTP
-      - "443:443"  # HTTPS
-    volumes:
-      - "./acme.json:/acme.json"  # Persist certificates
-      - "/var/run/docker.sock:/var/run/docker.sock"  # Access Docker socket for service discovery
-    networks:
-      - web 
+      - "traefik.enable=true"  # Enable Traefik routing for this service
+      - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN}`)"  # Route traffic from nest.example.com
+      - "traefik.http.routers.flask-api.entrypoints=web"  # Use HTTP entry point (port 80)
+      - "traefik.http.routers.flask-api.middlewares=https-redirect"  # Redirect HTTP to HTTPS
+      - "traefik.http.routers.flask-api-secure.rule=Host(`${DOMAIN}`)"  # HTTPS route
+      - "traefik.http.routers.flask-api-secure.entrypoints=websecure"  # Use HTTPS entry point (port 443)
+      - "traefik.http.routers.flask-api-secure.tls=true"  # Enable TLS for HTTPS
+      - "traefik.http.routers.flask-api-secure.tls.certresolver=leresolver"  # Use Let's Encrypt certificate resolver
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+    depends_on:
+      - traefik
 
 networks:
-  web:
-    driver: bridge
-  internal:
+  app-network:
     driver: bridge

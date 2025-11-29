@@ -2,8 +2,7 @@ services:
   # Flask application service
   flask-api:
     build: .
-    ports:
-      - "5000"  # Expose port 5000 for internal traffic
+    # No need to expose port 5000 here (since Traefik will handle routing)
     environment:
       - FLASK_ENV=development
     labels:
@@ -27,7 +26,7 @@ services:
       - "80:80"  # HTTP
       - "443:443"  # HTTPS
     volumes:
-      - "./acme.json:/acme.json"  # Traefik will store certificates in this file (ensure it's a file, not a directory)
+      - "./acme.json:/acme.json"  # Traefik will store certificates in this file
       - "/var/run/docker.sock:/var/run/docker.sock"  # Access Docker socket to discover services
     networks:
       - flask-network

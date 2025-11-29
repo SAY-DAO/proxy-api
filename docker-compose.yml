@@ -7,15 +7,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - 'traefik.http.routers.flask-api-http.rule=Host("${DOMAIN}")'
-      - 'traefik.http.routers.flask-api-http.entrypoints=web'
-      - 'traefik.http.routers.flask-api-http.middlewares=redirect-to-https'
-      - 'traefik.http.routers.flask-api-svc.rule=Host("${DOMAIN}")'
-      - 'traefik.http.routers.flask-api-svc.entrypoints=websecure'
-      - 'traefik.http.routers.flask-api-svc.tls=true'
-      - 'traefik.http.routers.flask-api-svc.tls.certresolver=le'
-      - 'traefik.http.services.flask-api-svc.loadbalancer.server.port=${APP_PORT:-5000}'
-      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
+      - "traefik.http.routers.flask-api-http.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-api-http.entrypoints=web"
+      - "traefik.http.routers.flask-api-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.flask-api-svc.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.flask-api-svc.entrypoints=websecure"
+      - "traefik.http.routers.flask-api-svc.tls=true"
+      - "traefik.http.routers.flask-api-svc.tls.certresolver=le"
+      - "traefik.http.services.flask-api-svc.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
     networks:
       - web 
 

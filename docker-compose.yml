@@ -4,7 +4,7 @@ services:
     build: .
     # No need to expose port 5000 here (since Traefik will handle routing)
     environment:
-      - FLASK_ENV=development
+      - FLASK_ENV=production
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.flask-api.rule=Host(`${DOMAIN}`)"  # Use environment variable for domain

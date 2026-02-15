@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
-ENV FLASK_ENV=production
+ENV FLASK_DEBUG=production
 
 # Install required dependencies
 WORKDIR /app

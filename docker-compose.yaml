@@ -24,8 +24,8 @@ services:
   # Flask API
   flask-api:
     build: .
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
     volumes:
       - .:/app
     # env_file:
@@ -43,6 +43,6 @@ services:
     # depends_on:
     #   - traefik
 
-networks:
-  app-network:
-    driver: bridge
+# networks:
+#   app-network:
+#     driver: bridge

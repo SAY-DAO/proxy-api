@@ -40,6 +40,8 @@ services:
       - "traefik.http.routers.flask-api-secure.tls=true"  # Enable TLS for HTTPS
       - "traefik.http.routers.flask-api-secure.tls.certresolver=leresolver"  # Use Let's Encrypt certificate resolver
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      # For coolify
+      - traefik.http.services.flask-api.loadbalancer.server.port=5000
     depends_on:
       - traefik
 
